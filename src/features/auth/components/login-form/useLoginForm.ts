@@ -1,0 +1,34 @@
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useAuth } from '../../hooks/use-auth';
+
+const loginSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(6, 'A senha deve ter pelo menos 6 caracteres'),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+
+export function useLoginForm() {
+  const { login, isLoading, error } = useAuth();
+  
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (values: LoginFormValues) => {
+    await login(values.email, values.password);
+  };
+
+  return {
+    form,
+    onSubmit: form.handleSubmit(onSubmit),
+    isLoading,
+    error,
+  };
+}

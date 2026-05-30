@@ -1,0 +1,18 @@
+@import "tailwindcss";
+@config "../../tailwind.config.ts";
+
+@layer base {
+  body {
+    @apply bg-background-primary text-ice-50 font-primary antialiased;
+  }
+}
+
+@layer components {
+  .vision-card {
+    @apply bg-background-card border border-border rounded-xl shadow-md p-6;
+  }
+  
+  .vision-button-primary {
+    @apply bg-vision-500 text-white font-medium rounded-lg px-4 py-2 transition-all hover:bg-vision-500/90 active:scale-95;
+  }
+}
