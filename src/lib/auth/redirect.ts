@@ -1,4 +1,4 @@
-const DEFAULT_ALLOWED_ORIGINS = ['localhost:3000', 'visionbizhub.vercel.app'];
+const DEFAULT_ALLOWED_ORIGINS = ['localhost:3000', 'visionbiz-hub.vercel.app'];
 
 function getAllowedOrigins(): string[] {
   const envVar = process.env.NEXT_PUBLIC_ALLOWED_REDIRECT_ORIGINS;

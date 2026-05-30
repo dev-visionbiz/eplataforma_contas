@@ -24,11 +24,14 @@ export function useLoginForm() {
 
   const onSubmit = async (values: LoginFormValues) => {
     await login(values.email, values.password);
-    const { user, error: loginError } = useAuth.getState();
-    if (user && !loginError) {
+    const { user, session, error: loginError } = useAuth.getState();
+    if (user && session && !loginError) {
       const redirectTo = getRedirectTo();
       if (redirectTo && isAllowedRedirect(redirectTo)) {
-        window.location.href = redirectTo;
+        const url = new URL(redirectTo);
+        url.searchParams.set('access_token', session.accessToken);
+        url.searchParams.set('refresh_token', session.refreshToken);
+        window.location.href = url.toString();
       }
     }
   };
