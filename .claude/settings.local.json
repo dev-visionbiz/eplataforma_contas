@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(git checkout *)",
+      "Bash(git reset *)",
+      "Bash(git branch *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\MINHA IP\\\\a plataforma\\\\VisionBiz\\\\Projeto VisionBiz\\\\VisionBizCentral\" -Recurse -Depth 2)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Recurse \"c:\\\\MINHA IP\\\\a plataforma\\\\VisionBiz\\\\Projeto VisionBiz\\\\VisionBizHub\\\\src\" | Where-Object { !$_.PSIsContainer } | Select-Object FullName)",
+      "PowerShell(head -50)"
+    ]
+  }
+}
