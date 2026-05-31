@@ -10,6 +10,7 @@ import {
   LucideEyeOff,
   LucideArrowRight,
 } from 'lucide-react';
+import { authService } from '../../services/auth-service';
 
 const HUB_URL = process.env.NEXT_PUBLIC_HUB_URL ?? 'https://visionbiz-hub.vercel.app';
 
@@ -20,9 +21,15 @@ export function ConfirmInviteForm() {
   const { register, formState: { errors } } = form;
 
   useEffect(() => {
-    if (isSuccess) {
-      window.location.href = HUB_URL;
-    }
+    if (!isSuccess) return;
+    authService.getCurrentSession().then((session) => {
+      const url = new URL(HUB_URL);
+      if (session) {
+        url.searchParams.set('access_token', session.accessToken);
+        url.searchParams.set('refresh_token', session.refreshToken);
+      }
+      window.location.href = url.toString();
+    });
   }, [isSuccess]);
 
   if (isSuccess) {

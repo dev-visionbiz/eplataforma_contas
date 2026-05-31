@@ -3,6 +3,8 @@
 import { LucideShieldCheck, LucideLayoutDashboard, LucideLogOut, LucideUsers } from "lucide-react";
 import { LoginForm } from "@/features/auth/components/login-form/LoginForm";
 import { useAuth } from "@/features/auth/hooks/use-auth";
+import { authService } from "@/features/auth/services/auth-service";
+import { isAllowedRedirect, getRedirectTo } from "@/lib/auth/redirect";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -10,10 +12,27 @@ export default function Home() {
   const { user, logout } = useAuth();
   const [mounted, setMounted] = useState(false);
 
-  // Prevents hydration mismatch with Zustand persist
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Hydrate Zustand from active Supabase session (e.g. after invite flow)
+  // and auto-redirect to hub if redirect_to param is present
+  useEffect(() => {
+    if (!mounted || user) return;
+    authService.getCurrentSession().then((session) => {
+      if (!session) return;
+      useAuth.setState({ user: session.user, session });
+      const redirectTo = getRedirectTo();
+      const target = redirectTo && isAllowedRedirect(redirectTo)
+        ? redirectTo
+        : (process.env.NEXT_PUBLIC_HUB_URL ?? 'https://visionbiz-hub.vercel.app');
+      const url = new URL(target);
+      url.searchParams.set('access_token', session.accessToken);
+      url.searchParams.set('refresh_token', session.refreshToken);
+      window.location.href = url.toString();
+    });
+  }, [mounted, user]);
 
   if (!mounted) return null;
 
