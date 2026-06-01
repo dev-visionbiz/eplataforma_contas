@@ -1,50 +1,51 @@
 'use client';
 
-import { LucideShieldCheck, LucideLayoutDashboard, LucideLogOut, LucideUsers } from "lucide-react";
+import { LucideLayoutDashboard, LucideLogOut, LucideLoader2 } from "lucide-react";
 import { LoginForm } from "@/features/auth/components/login-form/LoginForm";
 import { useAuth } from "@/features/auth/hooks/use-auth";
 import { authService } from "@/features/auth/services/auth-service";
 import { isAllowedRedirect, getRedirectTo } from "@/lib/auth/redirect";
-import { useEffect, useState } from "react";
-import Link from "next/link";
+import { useEffect, useState, useCallback } from "react";
 
 export default function Home() {
-  const { user, logout } = useAuth();
+  const { user, session, logout } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const redirectToHub = useCallback((accessToken: string, refreshToken: string) => {
+    const redirectTo = getRedirectTo();
+    const hubUrl = process.env.NEXT_PUBLIC_HUB_URL ?? 'https://visionbiz-hub.vercel.app';
+    const url = new URL(redirectTo && isAllowedRedirect(redirectTo) ? redirectTo : hubUrl);
+    url.searchParams.set('access_token', accessToken);
+    url.searchParams.set('refresh_token', refreshToken);
+    window.location.href = url.toString();
+  }, []);
+
+  // Auto-redirect when user is already persisted in Zustand
+  useEffect(() => {
+    if (!mounted || !user || !session) return;
+    redirectToHub(session.accessToken, session.refreshToken);
+  }, [mounted, user, session, redirectToHub]);
+
   // Hydrate Zustand from active Supabase session (e.g. after invite flow)
-  // and auto-redirect to hub if redirect_to param is present
   useEffect(() => {
     if (!mounted || user) return;
-    authService.getCurrentSession().then((session) => {
-      if (!session) return;
-      useAuth.setState({ user: session.user, session });
-      const redirectTo = getRedirectTo();
-      const target = redirectTo && isAllowedRedirect(redirectTo)
-        ? redirectTo
-        : (process.env.NEXT_PUBLIC_HUB_URL ?? 'https://visionbiz-hub.vercel.app');
-      const url = new URL(target);
-      url.searchParams.set('access_token', session.accessToken);
-      url.searchParams.set('refresh_token', session.refreshToken);
-      window.location.href = url.toString();
+    authService.getCurrentSession().then((supaSession) => {
+      if (!supaSession) return;
+      useAuth.setState({ user: supaSession.user, session: supaSession });
+      redirectToHub(supaSession.accessToken, supaSession.refreshToken);
     });
-  }, [mounted, user]);
+  }, [mounted, user, redirectToHub]);
 
   if (!mounted) return null;
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-background-primary">
       <div className="vision-card max-w-md w-full flex flex-col items-center space-y-8">
-        <div className="flex justify-center">
-          <div className="p-3 bg-vision-500/10 rounded-2xl">
-            <LucideShieldCheck className="w-12 h-12 text-vision-500" />
-          </div>
-        </div>
-        
+
         {user ? (
           <div className="w-full space-y-6 text-center">
             <div className="space-y-2">
@@ -52,38 +53,26 @@ export default function Home() {
                 Bem-vindo, {user.fullName}
               </h2>
               <p className="text-sm text-slate-400">
-                Você está autenticado na Central VisionBiz.
+                Você já está autenticado. Redirecionando para o painel...
               </p>
             </div>
 
-            <div className="p-4 bg-background-secondary rounded-lg border border-border text-left space-y-3">
-              <div className="flex items-center gap-3">
-                <LucideLayoutDashboard className="w-5 h-5 text-vision-500" />
-                <span className="text-sm font-medium">Sessão Ativa</span>
-              </div>
-              <div className="text-xs text-slate-500 space-y-1">
-                <p>ID: {user.id}</p>
-                <p>Papel: {user.role}</p>
-                <p>Tenant: {user.tenantId}</p>
-              </div>
-            </div>
+            <LucideLoader2 className="w-6 h-6 text-slate-500 animate-spin mx-auto" />
 
-            <div className="grid grid-cols-1 gap-3">
-              <Link 
-                href="/users"
-                className="vision-button-primary w-full flex items-center justify-center gap-2"
-              >
-                <LucideUsers className="w-4 h-4" />
-                Gerenciar Usuários
-              </Link>
-            </div>
+            <button
+              onClick={() => session && redirectToHub(session.accessToken, session.refreshToken)}
+              className="vision-button-primary w-full flex items-center justify-center gap-2"
+            >
+              <LucideLayoutDashboard className="w-4 h-4" />
+              Acessar painel Hub
+            </button>
 
-            <button 
+            <button
               onClick={() => logout()}
               className="w-full flex items-center justify-center gap-2 text-sm text-slate-400 hover:text-danger-500 transition-colors"
             >
               <LucideLogOut className="w-4 h-4" />
-              Sair da conta
+              Desconectar
             </button>
           </div>
         ) : (

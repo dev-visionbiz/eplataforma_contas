@@ -12,20 +12,20 @@ const config: Config = {
     extend: {
       colors: {
         background: {
-          primary: "#0D1117",
-          secondary: "#111827",
-          card: "#161B22",
+          primary: "#111111",
+          secondary: "#1A1A1A",
+          card: "#171717",
         },
         surface: {
-          default: "#161B22",
-          hover: "#1E293B",
+          default: "#171717",
+          hover: "#1E1E1E",
           active: "#2563EB",
         },
         vision: {
           500: "#2563EB",
         },
         graphite: {
-          900: "#0D1117",
+          900: "#111111",
         },
         ice: {
           50: "#F8FAFC",
